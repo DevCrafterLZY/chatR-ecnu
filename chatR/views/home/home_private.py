@@ -15,27 +15,29 @@ home_private_bp = Blueprint('home_private', __name__)
 
 async def process_private_file(i_id, f):
     filename_without_extension = os.path.splitext(f.filename)[0]
-    directory = (os.getcwd() + '\\chatR\\static\\pdf\\' +
-                 i_id + '\\' + filename_without_extension)
+    directory = (os.getcwd() + '/chatR/static/pdf/' +
+                 i_id + '/' + filename_without_extension)
     file_path = save_file(f, directory)
     print("directory: ", file_path, 'file saved')
 
     pdf2vector(file_path, directory)
 
     vector_store = faiss_engine.load_vector_store([directory])
-    introduce = await llm.aget_introduce(vector_store)
-
+    if llm.model_name == "gpt-3.5-turbo":
+        introduce = await llm.get_introduce(vector_store)
+    else:
+        introduce = llm.get_introduce(vector_store)
     print('introduce ', introduce)
 
     c_id = db.add_chat('INSERT INTO chat (i_id) VALUES (%s)', int(i_id))
+
     f_id = db.add_file('INSERT INTO file (f_name,f_introduce) VALUES (%s, %s)',
                        f.filename, introduce)
     db.addone('INSERT INTO chat_file(c_id, f_id) values (%s, %s)', c_id, f_id)
-
     return {'c_id': c_id, 'f_id': f_id, 'f_name': f.filename, 'f_introduce': introduce}
 
 
-async def create_item(i_id, files):
+async def acreate_item(i_id, files):
     i_id = str(i_id)
 
     tasks = [process_private_file(i_id, f) for f in files]
@@ -61,7 +63,7 @@ async def private_file_uploader():
         username = request.form['username']
         user = db.fetchone('select u_id from user where u_name = %s', username)
         item = db.add_item('INSERT INTO  item(i_name, u_id) VALUES (%s, %s)', i_name, user[0])
-        default_c_id = await create_item(item[0], files)
+        default_c_id = await acreate_item(item[0], files)
 
         return jsonify(
             {

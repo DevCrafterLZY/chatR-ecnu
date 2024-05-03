@@ -65,7 +65,7 @@ class Retriever:
         sorted_documents = [wrapper.document for wrapper in sorted_document_wrappers]
         return sorted_documents
 
-    async def rrf_get_relevant_documents(
+    async def arrf_get_relevant_documents(
             self,
             queries,
             vector_store: FAISS,

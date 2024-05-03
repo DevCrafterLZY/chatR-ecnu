@@ -15,14 +15,17 @@ home_public_bp = Blueprint('home_public', __name__)
 
 async def process_public_file(i_id, f):
     filename_without_extension = os.path.splitext(f.filename)[0]
-    directory = (os.getcwd() + '\\chatR\\static\\ppdf\\' +
-                 i_id + '\\' + filename_without_extension)
+    directory = (os.getcwd() + '/chatR/static/ppdf/' +
+                 i_id + '/' + filename_without_extension)
     file_path = save_file(f, directory)
     print("directory: ", file_path, 'file saved')
     pdf2vector(file_path, directory)
 
     vector_store = faiss_engine.load_vector_store([directory])
-    introduce = await llm.aget_introduce(vector_store)
+    if llm.model_name == "gpt-3.5-turbo":
+        introduce = await llm.get_introduce(vector_store)
+    else:
+        introduce = llm.get_introduce(vector_store)
 
     print('introduce ', introduce)
 
@@ -35,7 +38,7 @@ async def process_public_file(i_id, f):
     return {'c_id': c_id, 'f_id': f_id, 'f_name': f.filename, 'f_introduce': introduce}
 
 
-async def create_public_item(i_id, files):
+async def acreate_public_item(i_id, files):
     i_id = str(i_id)
 
     tasks = [process_public_file(i_id, f) for f in files]
@@ -62,7 +65,7 @@ async def public_file_uploader():
         i_name = request.form['item']
         files = request.files.getlist('files')
         item = db.add_public_item('INSERT INTO  public_item(pi_name) VALUES (%s)', i_name)
-        default_c_id = await create_public_item(item[0], files)
+        default_c_id = await acreate_public_item(item[0], files)
 
         return jsonify(
             {

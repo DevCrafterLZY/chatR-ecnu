@@ -19,7 +19,7 @@ async def private_get_answer(i_id, files, history, question):
         filename = file[1]
         file_names.append(filename)
         filename_without_extension = os.path.splitext(filename)[0]
-        directory = os.getcwd() + '\\chatR\\static\\pdf\\' + str(i_id) + '\\' + filename_without_extension
+        directory = os.getcwd() + '/chatR/static/pdf/' + str(i_id) + '/' + filename_without_extension
         directories.append(directory)
     print("private get_chat_chain start ")
 
@@ -29,7 +29,7 @@ async def private_get_answer(i_id, files, history, question):
     questions_list = llm.get_questions(file_names_str, history, en_question)
 
     print("questions: ", questions_list)
-    relevant_docs = await retriever.rrf_get_relevant_documents(questions_list, vector_store)
+    relevant_docs = await retriever.arrf_get_relevant_documents(questions_list, vector_store)
     print("private relevant docs: ")
     for doc in relevant_docs:
         print(doc.metadata)

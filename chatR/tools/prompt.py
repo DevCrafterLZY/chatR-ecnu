@@ -54,10 +54,14 @@ Verified Sources:
 User: {question}
 """
 
-INTRODUCE_TEMPLATE = """You are a helpful research assistant.The following context are some parts of an academic paper. 
+INTRODUCE_SYS = """
+You are a helpful research assistant.The following context are some parts of an academic paper. 
 Based on the following known content, provide a concise and professional answer to the user's question.
 The output should be provided in Chinese. Answer in approximately 100 Chinese characters.
 You can begin like this: 本篇文章主要研究了...
+"""
+
+INTRODUCE_TEMPLATE = """
 
 Context:
 ```
@@ -70,8 +74,12 @@ Question:
 ```
 """
 
-CLASSIFY_TEMPLATE = """以下是几篇文献的概述，请根据其研究主题分为不同的类别，如：推荐系统研究，城市交通预测等类别。
+CLASSIFY_SYS = """
+以下是几篇文献的概述，请根据其研究主题分为不同的类别，如：推荐系统研究，城市交通预测等类别。
 类别名在8个字以内，一篇文献不能出现在多个类别中：
+"""
+
+CLASSIFY_TEMPLATE = """
 文献概述：
 ```
 {summary}
@@ -111,8 +119,8 @@ class PromptTemplates:
 
     def __init__(self):
         self.refine_question_template = REFINE_QUESTION_TEMPLATE
-        self.introduce_template = INTRODUCE_TEMPLATE
-        self.classify_template = CLASSIFY_TEMPLATE
+        self.introduce_template = INTRODUCE_SYS + INTRODUCE_TEMPLATE
+        self.classify_template = CLASSIFY_SYS + CLASSIFY_TEMPLATE
         self.select_docs_template = DOCS_SELECTION_TEMPLATE
         self.retrieval_qa_template = RETRIEVAL_QA_TEMPLATE
 

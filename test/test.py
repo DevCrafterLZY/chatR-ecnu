@@ -10,3 +10,5 @@ if __name__ == '__main__':
     # print(file_path)
     # pdf2vector(file_path, directory)
     vector_store = faiss_engine.load_vector_store([directory])
+    res = vector_store.similarity_search_with_score('介绍一下窗口注意力机制')
+    print(res)

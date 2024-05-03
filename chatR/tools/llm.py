@@ -9,6 +9,7 @@ from langchain.schema import Document
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
 from chatR.config.config import config
+from chatR.tools.local_llm import LocalLlmEngine
 from chatR.tools.prompt import PromptTemplates
 from chatR.tools.utils import get_standalone_questions_list
 
@@ -63,20 +64,7 @@ class LlmEngine:
         answer = chain({"file_names": file_names, "chat_history": history, "context": context, "question": question})
         return answer["text"]
 
-    def get_introduce(
-            self,
-            vector_store
-    ) -> str:
-        chain = RetrievalQA.from_llm(
-            llm=self.openai,
-            verbose=True,
-            retriever=vector_store.as_retriever(),
-            prompt=self.prompt_templates.get_introduce_template()
-        )
-
-        return chain.run("What problem does this paper study?")
-
-    async def aget_introduce(
+    async def get_introduce(
             self,
             vector_store,
     ) -> str:
@@ -86,7 +74,6 @@ class LlmEngine:
             retriever=vector_store.as_retriever(),
             prompt=self.prompt_templates.get_introduce_template()
         )
-
         return await chain.arun("What problem does this paper study?")
 
     def get_classification(
@@ -137,4 +124,8 @@ class LlmEngine:
             return []
 
 
-llm = LlmEngine()
+llm = None
+if config.model_name == "gpt-3.5-turbo":
+    llm = LlmEngine()
+else:
+    llm = LocalLlmEngine(config.model_name)

@@ -39,7 +39,7 @@ def pdf2vector(file_path, directory):
 
 def save_file(file, directory) -> str:
     os.makedirs(directory, exist_ok=True)
-    file_path = directory + '\\' + file.filename
+    file_path = directory + '/' + file.filename
     if os.path.exists(file_path):
         print(f"{file.filename} already exists, skipping...")
     file.save(file_path)
