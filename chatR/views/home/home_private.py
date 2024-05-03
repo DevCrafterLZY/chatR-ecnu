@@ -37,7 +37,7 @@ async def process_private_file(i_id, f):
     return {'c_id': c_id, 'f_id': f_id, 'f_name': f.filename, 'f_introduce': introduce}
 
 
-async def acreate_item(i_id, files):
+async def create_item(i_id, files):
     i_id = str(i_id)
 
     tasks = [process_private_file(i_id, f) for f in files]
@@ -63,7 +63,7 @@ async def private_file_uploader():
         username = request.form['username']
         user = db.fetchone('select u_id from user where u_name = %s', username)
         item = db.add_item('INSERT INTO  item(i_name, u_id) VALUES (%s, %s)', i_name, user[0])
-        default_c_id = await acreate_item(item[0], files)
+        default_c_id = await create_item(item[0], files)
 
         return jsonify(
             {

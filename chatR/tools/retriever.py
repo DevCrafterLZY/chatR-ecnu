@@ -17,7 +17,7 @@ async def _get_relevant_documents(
 ):
     docs_with_score = vector_store.similarity_search_with_score(query, k=retrieval_k)
     docs = [doc[0] for doc in docs_with_score]
-    docs_id = await llm.aselect_docs(docs, query)
+    docs_id = await llm.select_docs(docs, query)
     relevant_docs_with_score = [docs_with_score[i] for i in docs_id]
     sorted_relevant_docs_with_score = sorted(relevant_docs_with_score, key=lambda x: x[1], reverse=True)
     sorted_relevant_docs = [doc[0] for doc in sorted_relevant_docs_with_score]
@@ -65,13 +65,12 @@ class Retriever:
         sorted_documents = [wrapper.document for wrapper in sorted_document_wrappers]
         return sorted_documents
 
-    async def arrf_get_relevant_documents(
+    async def rrf_get_relevant_documents(
             self,
             queries,
             vector_store: FAISS,
             retrieval_k=None,
     ) -> List[Document]:
-
         tasks = [_get_relevant_documents(query, vector_store, self._first_retrieval_k) for query in queries]
         sorted_relevant_docs_lists = await asyncio.gather(*tasks)
         sorted_documents = self._reciprocal_rank_fusion(sorted_relevant_docs_lists)

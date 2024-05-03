@@ -97,7 +97,7 @@ class LlmEngine:
             print("未找到JSON内容")
         return classification
 
-    async def aselect_docs(
+    async def select_docs(
             self,
             docs: List[Document],
             question

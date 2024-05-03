@@ -1,4 +1,5 @@
 from langchain import PromptTemplate
+from typing import List, Dict
 
 REFINE_QUESTION_TEMPLATE = """Break down or rephrase the follow up input into fewer than 3 heterogeneous one-hop queries 
 to be the input of a retrieval tool, if the follow up inout is multi-hop, multi-step, complex or comparative queries and 
@@ -119,8 +120,10 @@ class PromptTemplates:
 
     def __init__(self):
         self.refine_question_template = REFINE_QUESTION_TEMPLATE
-        self.introduce_template = INTRODUCE_SYS + INTRODUCE_TEMPLATE
-        self.classify_template = CLASSIFY_SYS + CLASSIFY_TEMPLATE
+        self.introduce_sys = INTRODUCE_SYS
+        self.introduce_template = INTRODUCE_TEMPLATE
+        self.classify_sys = CLASSIFY_SYS
+        self.classify_template = CLASSIFY_TEMPLATE
         self.select_docs_template = DOCS_SELECTION_TEMPLATE
         self.retrieval_qa_template = RETRIEVAL_QA_TEMPLATE
 
@@ -139,14 +142,14 @@ class PromptTemplates:
         )
 
     def get_introduce_template(self):
-        temp = self.introduce_template
+        temp = self.introduce_sys + self.introduce_template
         return PromptTemplate(
             template=temp,
             input_variables=["context", "question"]
         )
 
     def get_classify_template(self):
-        temp = self.classify_template
+        temp = self.classify_sys + self.classify_template
         return PromptTemplate(
             template=temp,
             input_variables=["summary"]
@@ -158,3 +161,28 @@ class PromptTemplates:
             template=temp,
             input_variables=["context", "question"]
         )
+
+    def get_llama3_introduce_messages(self, context, question) -> List[Dict[str, str]]:
+        prompt_template = PromptTemplate(
+            template=self.introduce_template,
+            input_variables=["context", "question"]
+        )
+        message = prompt_template.format(context=context, question=question)
+        messages = [
+            {"role": "system", "content": self.introduce_sys},
+            {"role": "user", "content": message},
+        ]
+        return messages
+
+    def get_llama3_classify_messages(self, context) -> List[Dict[str, str]]:
+        prompt_template = PromptTemplate(
+            template=self.classify_template,
+            input_variables=["summary"]
+        )
+        message = prompt_template.format(summary=context)
+        messages = [
+            {"role": "system", "content": self.classify_sys},
+            {"role": "user", "content": message},
+        ]
+
+        return messages

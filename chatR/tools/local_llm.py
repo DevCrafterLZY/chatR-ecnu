@@ -22,7 +22,12 @@ class LocalLlmEngine:
         )
         self.prompt_templates = PromptTemplates()
 
-    def _get_output(self, prompt) -> str:
+    def _get_output(self, messages) -> str:
+        prompt = self.pipeline.tokenizer.apply_chat_template(
+            messages,
+            tokenize=False,
+            add_generation_prompt=True
+        )
         outputs = self.pipeline(
             prompt,
             max_new_tokens=1024,
@@ -44,36 +49,16 @@ class LocalLlmEngine:
         docs_with_score = vector_store.similarity_search_with_score(question)
         docs = [doc[0] for doc in docs_with_score]
         context, _, _ = process_raw_docs(docs)
-        prompt_template = self.prompt_templates.get_introduce_template()
-        message = prompt_template.format(context=context, question=question)
-        messages = [
-            {"role": "system", "content": INTRODUCE_SYS},
-            {"role": "user", "content": message},
-        ]
-        prompt = self.pipeline.tokenizer.apply_chat_template(
-            messages,
-            tokenize=False,
-            add_generation_prompt=True
-        )
-        output = self._get_output(prompt)
+        messages = self.prompt_templates.get_llama3_introduce_messages(context, question)
+        output = self._get_output(messages)
         return output
 
     def get_classification(
             self,
             context
     ):
-        prompt_template = self.prompt_templates.get_classify_template()
-        message = prompt_template.format(summary=context)
-        messages = [
-            {"role": "system", "content": INTRODUCE_SYS},
-            {"role": "user", "content": message},
-        ]
-        prompt = self.pipeline.tokenizer.apply_chat_template(
-            messages,
-            tokenize=False,
-            add_generation_prompt=True
-        )
-        output = self._get_output(prompt)
+        messages = self.prompt_templates.get_llama3_classify_messages(context)
+        output = self._get_output(messages)
         print(output)
         pattern = re.compile(r'```json\s*([\s\S]+?)\s*```')
         match = pattern.search(output)
