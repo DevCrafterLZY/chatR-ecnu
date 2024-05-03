@@ -6,7 +6,7 @@ from chatR.tools.retriever import retriever
 from chatR.tools.sqlhelper import db
 from chatR.tools.llm import llm
 from chatR.tools.store import faiss_engine
-from chatR.tools.utils import public_get_chat_history, baidu_translate, process_raw_docs
+from chatR.tools.utils import public_get_chat_history_list, baidu_translate, process_raw_docs
 
 chat_public_bp = Blueprint('chat_public', __name__)
 
@@ -76,7 +76,7 @@ def public_pdf_path():
     file = db.fetchone('select * from public_file where pf_id = %s', chat_file[1])
     filename = file[1]
     filename_without_extension = os.path.splitext(filename)[0]
-    path = 'http://localhost:5000/static/ppdf/' + str(i_id) + '/' + filename_without_extension + '/' + filename
+    path = 'http://49.52.20.58:8080/static/ppdf/' + str(i_id) + '/' + filename_without_extension + '/' + filename
     print("c_id: ", c_id, " path: ", path)
     return jsonify(
         {
@@ -98,7 +98,7 @@ async def public_send_message():
         files.append(db.fetchone('select * from public_file where pf_id = %s', chat[1]))
     chat = db.fetchone('select * from public_chat where pc_id = %s', c_id)
     i_id = chat[1]
-    history = public_get_chat_history(c_id, u_id, 1)
+    history = public_get_chat_history_list(c_id, u_id, 1)
     answer, resources = await public_get_answer(i_id, files, history, message)
     db.addone('INSERT INTO public_message (pc_id,u_id,q_context, a_content,a_source_documents) VALUES (%s,%s,%s, %s,%s)'
               , c_id, u_id, message, answer, json.dumps(resources, ensure_ascii=False), )

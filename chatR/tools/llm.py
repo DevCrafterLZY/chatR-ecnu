@@ -11,7 +11,7 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from chatR.config.config import config
 from chatR.tools.local_llm import LocalLlmEngine
 from chatR.tools.prompt import PromptTemplates
-from chatR.tools.utils import get_standalone_questions_list
+from chatR.tools.utils import get_standalone_questions_list, history_list2str
 
 
 class LlmEngine:
@@ -43,6 +43,7 @@ class LlmEngine:
             verbose=True,
             prompt=prompt
         )
+        chat_history = history_list2str(chat_history)
         answer = chain({"file_names": file_names, "chat_history": chat_history, "question": question})
         questions_list = get_standalone_questions_list(answer["text"], question)
         return questions_list
@@ -61,6 +62,7 @@ class LlmEngine:
             verbose=True,
             prompt=prompt
         )
+        history = history_list2str(history)
         answer = chain({"file_names": file_names, "chat_history": history, "context": context, "question": question})
         return answer["text"]
 

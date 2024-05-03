@@ -1,7 +1,15 @@
 from langchain import PromptTemplate
 from typing import List, Dict
 
-REFINE_QUESTION_TEMPLATE = """Break down or rephrase the follow up input into fewer than 3 heterogeneous one-hop queries 
+CHAT_HISTORY_TEMPLATE = """
+Chat History:
+```
+{chat_history}
+```
+
+"""
+REFINE_QUESTION_SYS = """
+Break down or rephrase the follow up input into fewer than 3 heterogeneous one-hop queries 
 to be the input of a retrieval tool, if the follow up inout is multi-hop, multi-step, complex or comparative queries and 
 relevant to Chat History and Document Names. Otherwise keep the follow up input as it is.
 
@@ -12,16 +20,12 @@ The output format should strictly follow the following, and each query can only 
 3. One-hop standalone query
 ...
 ```
-
+"""
+REFINE_QUESTION_TEMPLATE = """
 
 Document Names in the knowledge base:
 ```
 {file_names}
-```
-
-Chat History(The first one is the latest):
-```
-{chat_history}
 ```
 
 Begin:
@@ -30,19 +34,14 @@ Follow Up Input: {question}
 
 One-hop standalone query(s):
 """
-
-RETRIEVAL_QA_TEMPLATE = """You are a helpful research assistant. If you think the below below information are relevant 
-to the human input, please respond to the human based on the relevant retrieved sources; 
+RETRIEVAL_QA_SYS = """You are a helpful research assistant. If you think the below below information are relevant 
+to the human input, provide concise and professional answers to the human based on the relevant retrieved sources; 
 otherwise, respond in your own words only about the human input.The output should be provided in Chinese.
+"""
+RETRIEVAL_QA_TEMPLATE = """
 File Names in the knowledge base:
 ```
 {file_names}
-```
-
-
-Chat History:
-```
-{chat_history}
 ```
 
 
@@ -53,6 +52,7 @@ Verified Sources:
 
 
 User: {question}
+注意请用中文回答,答案应当精炼!
 """
 
 INTRODUCE_SYS = """
@@ -102,8 +102,12 @@ CLASSIFY_TEMPLATE = """
 ```
 """
 
-DOCS_SELECTION_TEMPLATE = """Below are some verified sources and a human input. 
+DOCS_SELECTION_SYS = """
+Below are some verified sources and a human input. 
 If you think any of them are relevant to the human input, then list all possible context numbers.
+"""
+
+DOCS_SELECTION_TEMPLATE = """
 
 ```
 {context}
@@ -119,23 +123,36 @@ Human Input: {question}
 class PromptTemplates:
 
     def __init__(self):
+        self.refine_question_sys = REFINE_QUESTION_SYS
         self.refine_question_template = REFINE_QUESTION_TEMPLATE
+
         self.introduce_sys = INTRODUCE_SYS
         self.introduce_template = INTRODUCE_TEMPLATE
+
         self.classify_sys = CLASSIFY_SYS
         self.classify_template = CLASSIFY_TEMPLATE
+
+        self.select_docs_sys = DOCS_SELECTION_SYS
         self.select_docs_template = DOCS_SELECTION_TEMPLATE
+
+        self.retrieval_qa_sys = RETRIEVAL_QA_SYS
         self.retrieval_qa_template = RETRIEVAL_QA_TEMPLATE
 
+        self.chat_history_template = CHAT_HISTORY_TEMPLATE
+
     def get_refine_question_template(self):
-        temp = self.refine_question_template
+        temp = (self.refine_question_sys +
+                self.chat_history_template +
+                self.refine_question_template)
         return PromptTemplate(
             template=temp,
             input_variables=["file_names", "chat_history", "question"]
         )
 
     def get_retrieval_qa_template(self):
-        temp = self.retrieval_qa_template
+        temp = (self.retrieval_qa_sys +
+                self.chat_history_template +
+                self.retrieval_qa_template)
         return PromptTemplate(
             template=temp,
             input_variables=["file_names", "context", "question", "chat_history"]
@@ -156,7 +173,7 @@ class PromptTemplates:
         )
 
     def get_select_docs_template(self):
-        temp = self.select_docs_template
+        temp = self.select_docs_sys + self.select_docs_template
         return PromptTemplate(
             template=temp,
             input_variables=["context", "question"]
@@ -184,5 +201,49 @@ class PromptTemplates:
             {"role": "system", "content": self.classify_sys},
             {"role": "user", "content": message},
         ]
+        return messages
 
+    def get_llama3_select_docs_messages(self, context, question) -> List[Dict[str, str]]:
+        prompt_template = PromptTemplate(
+            template=self.select_docs_template,
+            input_variables=["context", "question"]
+        )
+        message = prompt_template.format(context=context, question=question)
+        messages = [
+            {"role": "system", "content": self.select_docs_sys},
+            {"role": "user", "content": message},
+        ]
+        return messages
+
+    def get_llama3_refine_question_messages(self,
+                                            file_names,
+                                            chat_history,
+                                            question) -> List[Dict[str, str]]:
+        prompt_template = PromptTemplate(
+            template=self.refine_question_template,
+            input_variables=["file_names", "question"]
+        )
+        message = prompt_template.format(file_names=file_names, question=question)
+        messages = [
+            {"role": "system", "content": self.refine_question_sys}
+        ]
+        messages.extend(chat_history)
+        messages.append({"role": "user", "content": message})
+        return messages
+
+    def get_llama3_retrieval_qa_messages(self,
+                                         file_names,
+                                         history,
+                                         context,
+                                         question):
+        prompt_template = PromptTemplate(
+            template=self.retrieval_qa_template,
+            input_variables=["file_names", "context", "question"]
+        )
+        message = prompt_template.format(file_names=file_names, context=context, question=question)
+        messages = [
+            {"role": "system", "content": self.retrieval_qa_sys}
+        ]
+        messages.extend(history)
+        messages.append({"role": "user", "content": message})
         return messages

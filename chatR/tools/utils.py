@@ -1,7 +1,7 @@
 import os
 import re
 from collections import defaultdict
-from typing import List
+from typing import List, Dict
 import hashlib
 import random
 import requests
@@ -46,25 +46,33 @@ def save_file(file, directory) -> str:
     return file_path
 
 
-def private_get_chat_history(c_id, size=1) -> str:
+def private_get_chat_history_list(c_id, size=1) -> List[Dict[str, str]]:
     history_messages = db.fetchall('select * from message where c_id = %s order by q_time desc limit %s', c_id, size)
-    history = ""
+    messages = []
     for message in history_messages:
-        human = "Human: " + message[2]
-        ai = "You: " + message[3]
-        history += "\n\n" + "\n".join([human, ai])
-    return history
+        messages.append({"role": "user", "content": message[2]})
+        messages.append({"role": "assistant", "content": message[3]})
+    return messages
 
 
-def public_get_chat_history(c_id, u_id, size=1) -> str:
+def public_get_chat_history_list(c_id, u_id, size=1) -> List[Dict[str, str]]:
     history_messages = db.fetchall('select * from public_message '
                                    'where pc_id = %s and u_id = %s '
                                    'order by q_time desc limit %s', c_id, u_id, size)
-    history = ""
+    messages = []
     for message in history_messages:
-        human = "User: " + message[3]
-        ai = "You: " + message[4]
-        history += "\n\n" + "\n".join([human, ai])
+        messages.append({"role": "user", "content": message[3]})
+        messages.append({"role": "assistant", "content": message[4]})
+    return messages
+
+
+def history_list2str(messages) -> str:
+    history = ""
+    for message in messages:
+        if message["role"] == "user":
+            history += "\n\nHuman: " + message["content"]
+        elif message["role"] == "assistant":
+            history += "\n\nYou: " + message["content"]
     return history
 
 

@@ -17,7 +17,10 @@ async def _get_relevant_documents(
 ):
     docs_with_score = vector_store.similarity_search_with_score(query, k=retrieval_k)
     docs = [doc[0] for doc in docs_with_score]
-    docs_id = await llm.select_docs(docs, query)
+    if llm.model_name == "gpt-3.5-turbo":
+        docs_id = await llm.select_docs(docs, query)
+    else:
+        docs_id = llm.select_docs(docs, query)
     relevant_docs_with_score = [docs_with_score[i] for i in docs_id]
     sorted_relevant_docs_with_score = sorted(relevant_docs_with_score, key=lambda x: x[1], reverse=True)
     sorted_relevant_docs = [doc[0] for doc in sorted_relevant_docs_with_score]
