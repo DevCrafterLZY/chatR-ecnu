@@ -5,10 +5,7 @@ from chatR.tools.utils import pdf2vector
 
 if __name__ == '__main__':
 
-    directory = (os.getcwd() + '/pdf')
-    file_path = "/workspace/lzy/chatR/test/pdf/Towards Spatio-Temporal Aware Traffic Time Series.pdf"
-    # print(file_path)
-    # pdf2vector(file_path, directory)
-    vector_store = faiss_engine.load_vector_store([directory])
-    res = vector_store.similarity_search_with_score('介绍一下窗口注意力机制')
-    print(res)
+    file_name = 'Towards Spatio-Temporal Aware Traffic Time Series.pdf'
+    directory = ("/workspace/lzy/chatR/chatR/static/ppdf/1/Towards Spatio-Temporal Aware Traffic Time Series/")
+    file_path = directory + file_name
+    pdf2vector(file_path, directory)

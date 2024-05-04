@@ -7,6 +7,7 @@ from chatR.tools.sqlhelper import db
 from chatR.tools.llm import llm
 from chatR.tools.store import faiss_engine
 from chatR.tools.utils import private_get_chat_history_list, baidu_translate, process_raw_docs
+from chatR.config.config import config
 
 chat_private_bp = Blueprint('chat_private', __name__)
 
@@ -76,7 +77,7 @@ def private_pdf_path():
     file = db.fetchone('select * from file where f_id = %s', chat_file[1])
     filename = file[1]
     filename_without_extension = os.path.splitext(filename)[0]
-    path = 'http://49.52.20.58:8080/static/pdf/' + str(i_id) + '/' + filename_without_extension + '/' + filename
+    path = config.url + '/static/pdf/' + str(i_id) + '/' + filename_without_extension + '/' + filename
     print("c_id: ", c_id, " path: ", path)
     return jsonify(
         {

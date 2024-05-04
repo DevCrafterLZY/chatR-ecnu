@@ -3,6 +3,7 @@ import functools
 from flask import jsonify
 from flask import request, redirect, Blueprint, session
 from chatR.tools.sqlhelper import db
+from chatR.config.config import config
 
 login_bp = Blueprint('login', __name__)
 
@@ -12,8 +13,9 @@ def auth(func):  # 装饰器，没有登入返回login页面，用@auth调用
     def inner(*args, **kwargs):
         username = session.get('username')
         if not username:
-            return redirect('http://localhost:8080/login')
+            return redirect(config.url + '/login')
         return func(*args, **kwargs)
+
     return inner
 
 
@@ -50,4 +52,3 @@ def login():
                 'message': '密码错误!'
             }
         )
-

@@ -27,5 +27,8 @@ class Config:
         self.charset = self.config.get("mysql", "CHARSET")
         self.min_cached = self.config.getint("mysql", "MIN_CACHED")
 
+        # Server
+        self.url = self.config.get("server", "URL")
+
 
 config = Config('configparser.ini')
