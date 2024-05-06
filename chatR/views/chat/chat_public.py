@@ -6,7 +6,8 @@ from chatR.tools.retriever import retriever
 from chatR.tools.sqlhelper import db
 from chatR.tools.llm import llm
 from chatR.tools.store import faiss_engine
-from chatR.tools.utils import public_get_chat_history_list, baidu_translate, process_raw_docs
+from chatR.tools.translator import translator
+from chatR.tools.utils import public_get_chat_history_list, process_raw_docs
 from chatR.config.config import config
 
 chat_public_bp = Blueprint('chat_public', __name__)
@@ -15,7 +16,7 @@ chat_public_bp = Blueprint('chat_public', __name__)
 async def public_get_answer(i_id, files, history, question):
     directories = []
     file_names = []
-    en_question = baidu_translate(question)
+    en_question = translator.translate(question)
     for file in files:
         filename = file[1]
         file_names.append(filename)

@@ -80,7 +80,8 @@ class LlmEngine:
 
     def get_classification(
             self,
-            context
+            context,
+            f_ids
     ):
         chain = LLMChain(
             llm=self.openai,
@@ -90,7 +91,12 @@ class LlmEngine:
         res = chain.run(context)
         pattern = re.compile(r'```json\s*([\s\S]+?)\s*```')
         match = pattern.search(res)
-        classification = {}
+        classification = [
+            {
+                "name": "文献",
+                "children": f_ids
+            }
+        ]
         if match:
             json_content = match.group(1)
             classification = json.loads(json_content)

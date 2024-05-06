@@ -45,11 +45,13 @@ async def create_item(i_id, files):
 
     context = ""
     default_c_id = db.add_chat('INSERT INTO chat (i_id,chat_type) VALUES (%s,%s)', int(i_id), 1)
+    f_ids = []
     for chat in chats:
+        f_ids.append(int(chat['f_id']))
         context += "id: " + str(chat['f_id']) + ";概述: " + chat['f_introduce'] + '\n'
         db.addone('INSERT INTO chat_file(c_id, f_id) values (%s, %s)', default_c_id, chat['f_id'])
 
-    classification = llm.get_classification(context)
+    classification = llm.get_classification(context, f_ids)
     mind_map = generate_mind_map(i_id, default_c_id, chats, classification, 'private')
     db.update("UPDATE item SET i_mind_map = %s WHERE i_id = %s", json.dumps(mind_map, ensure_ascii=False), i_id)
     return default_c_id

@@ -59,13 +59,20 @@ class LocalLlmEngine:
 
     def get_classification(
             self,
-            context
+            context,
+            f_ids
     ):
         messages = self.prompt_templates.get_llama3_classify_messages(context)
         output = self._get_output(messages)
+        print("classification:" + output)
         pattern = re.compile(r'```json\s*([\s\S]+?)\s*```')
         match = pattern.search(output)
-        classification = {}
+        classification = [
+            {
+                "name": "我的文献",
+                "children": f_ids
+            }
+        ]
         if match:
             json_content = match.group(1)
             classification = json.loads(json_content)

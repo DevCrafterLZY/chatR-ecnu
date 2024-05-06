@@ -6,7 +6,8 @@ from chatR.tools.retriever import retriever
 from chatR.tools.sqlhelper import db
 from chatR.tools.llm import llm
 from chatR.tools.store import faiss_engine
-from chatR.tools.utils import private_get_chat_history_list, baidu_translate, process_raw_docs
+from chatR.tools.translator import translator
+from chatR.tools.utils import private_get_chat_history_list, process_raw_docs
 from chatR.config.config import config
 
 chat_private_bp = Blueprint('chat_private', __name__)
@@ -15,7 +16,8 @@ chat_private_bp = Blueprint('chat_private', __name__)
 async def private_get_answer(i_id, files, history, question):
     directories = []
     file_names = []
-    en_question = baidu_translate(question)
+    en_question = translator.translate(question)
+    print(en_question)
     for file in files:
         filename = file[1]
         file_names.append(filename)
@@ -92,6 +94,7 @@ async def private_send_message():
     c_id = request.json['c_id']
     print('c_id:', c_id, ' message: ', message)
     chats = db.fetchall('select * from chat_file where c_id = %s', c_id)
+    print(chats)
     files = []
     for chat in chats:
         files.append(db.fetchone('select * from file where f_id = %s', chat[1]))

@@ -46,12 +46,13 @@ async def create_public_item(i_id, files):
 
     context = ""
     default_c_id = db.add_chat('INSERT INTO public_chat (pi_id,p_chat_type) VALUES (%s,%s)', int(i_id), 1)
+    f_ids = []
     for chat in chats:
+        f_ids.append(int(chat['f_id']))
         context += "id: " + str(chat['f_id']) + ";概述: " + chat['f_introduce'] + '\n'
         db.addone('INSERT INTO public_chat_file(pc_id, pf_id) values (%s, %s)', default_c_id, chat['f_id'])
 
-    classification = llm.get_classification(context)
-
+    classification = llm.get_classification(context, f_ids)
     mind_map = generate_mind_map(i_id, default_c_id, chats, classification, 'public')
     db.update("UPDATE public_item SET pi_mind_map = %s WHERE pi_id = %s"
               , json.dumps(mind_map, ensure_ascii=False), i_id)
