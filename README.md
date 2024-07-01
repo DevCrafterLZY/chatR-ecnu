@@ -21,3 +21,5 @@ pip install -U flask-cors
 pip install pymysql
 
 pip install DBUtils
+
+pip install --upgrade cryptography

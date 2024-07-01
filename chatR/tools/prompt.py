@@ -105,6 +105,7 @@ CLASSIFY_TEMPLATE = """
 DOCS_SELECTION_SYS = """
 Below are some verified sources and a human input. 
 If you think any of them are relevant to the human input, then list all possible context numbers.
+If the input explicitly specifies a file, please exclude the context from other files.
 """
 
 DOCS_SELECTION_TEMPLATE = """

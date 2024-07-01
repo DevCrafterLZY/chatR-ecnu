@@ -65,6 +65,7 @@ async def public_file_uploader():
     if request.method == 'POST':
         i_name = request.form['item']
         files = request.files.getlist('files')
+        print(i_name, files)
         item = db.add_public_item('INSERT INTO  public_item(pi_name) VALUES (%s)', i_name)
         default_c_id = await create_public_item(item[0], files)
 
